@@ -70,6 +70,7 @@ __all__ = [
     "VideoDataFormat",
     "get_datamodule",
     "BTech",
+    "Dataframe",
     "Datumaro",
     "Folder",
     "Folder3D",
@@ -82,5 +83,4 @@ __all__ = [
     "ShanghaiTech",
     "Visa",
     "LabelName",
-    "Dataframe",
 ]
