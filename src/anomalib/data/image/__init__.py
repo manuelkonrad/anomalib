@@ -9,6 +9,7 @@ This module contains the supported image datasets for Anomalib.
 from enum import Enum
 
 from .btech import BTech
+from .dataframe import Dataframe
 from .folder import Folder
 from .kolektor import Kolektor
 from .mvtec import MVTec
@@ -25,6 +26,7 @@ class ImageDataFormat(str, Enum):
     FOLDER = "folder"
     FOLDER_3D = "folder_3d"
     VISA = "visa"
+    DATAFRAME = "dataframe"
 
 
-__all__ = ["BTech", "Folder", "Kolektor", "MVTec", "Visa"]
+__all__ = ["BTech", "Folder", "Kolektor", "MVTec", "Visa", "Dataframe"]

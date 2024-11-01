@@ -24,7 +24,7 @@ from anomalib.data.utils import (
 
 
 def make_dataframe_dataset(
-    samples: DataFrame,
+    samples: dict | list | DataFrame,
     root: str | Path | None = None,
     split: str | Split | None = None,
 ) -> DataFrame:
@@ -61,11 +61,15 @@ def make_dataframe_dataset(
             3  ./toy/good/03.jpg  DirType.NORMAL            0            Split.TRAIN
             4  ./toy/good/04.jpg  DirType.NORMAL            0            Split.TRAIN
     """
+    # Convert to pandas DataFrame if dictionary or list is given
+    if isinstance(samples, dict | list):
+        samples = DataFrame(samples)
+
     samples = samples.sort_values(by="image_path", ignore_index=True)
 
     # Create label column for folder datamodule compatibility
     samples.label_index = samples.label_index.astype("Int64")
-    if "label" not in samples.columns:    
+    if "label" not in samples.columns:
         samples.loc[
             (samples.label_index == LabelName.NORMAL) & (samples.split == Split.TRAIN),
             "label",
@@ -78,7 +82,7 @@ def make_dataframe_dataset(
             (samples.label_index == LabelName.ABNORMAL),
             "label",
         ] = DirType.ABNORMAL
-    
+
     # Check if anomalous samples are in training set
     if len(samples[(samples.label_index == LabelName.ABNORMAL) & (samples.split == Split.TRAIN)]) != 0:
         msg = "Training set must not contain anomalous samples."
@@ -86,15 +90,19 @@ def make_dataframe_dataset(
 
     # Add mask_path column if not exists
     if "mask_path" not in samples.columns:
-        samples["mask_path"] = None
+        samples["mask_path"] = ""
+    samples.loc[samples["mask_path"].isna(), "mask_path"] = ""
 
-    # Add root to paths if not None
+    # Add root to paths
     if root:
-        for path_col in ["image_path", "mask_path"]:
-            samples[path_col] = samples[path_col].map(lambda x: Path(root, x), na_action="ignore")
+        samples["image_path"] = samples["image_path"].map(lambda x: Path(root, x))
+        samples.loc[
+            samples["mask_path"] != "",
+            "mask_path",
+        ] = samples.loc[samples["mask_path"] != "", "mask_path"].map(lambda x: Path(root, x))
     samples = samples.astype({"image_path": "str", "mask_path": "str", "label": "str"})
 
-    # Get the data frame for the split.
+    # Get the dataframe for the split.
     if split:
         samples = samples[samples.split == split]
         samples = samples.reset_index(drop=True)
@@ -125,8 +133,8 @@ class DataframeDataset(AnomalibDataset):
             provided, `task` should be set to `segmentation`.
 
     Examples:
-        Assume that we would like to use this ``DataframeDataset`` to create a dataset from a DataFrame for a classification
-        task. We could first create the transforms,
+        Assume that we would like to use this ``DataframeDataset`` to create a dataset from a DataFrame for
+        a classification task. We could first create the transforms,
 
         >>> from anomalib.data.utils import InputNormalizationMethod, get_transforms
         >>> transform = get_transforms(image_size=256, normalization=InputNormalizationMethod.NONE)
@@ -148,7 +156,7 @@ class DataframeDataset(AnomalibDataset):
         self,
         name: str,
         task: TaskType,
-        samples: DataFrame,
+        samples: dict | list | DataFrame,
         transform: Transform | None = None,
         root: str | Path | None = None,
         split: str | Split | None = None,
@@ -251,7 +259,7 @@ class Dataframe(AnomalibDataModule):
     def __init__(
         self,
         name: str,
-        samples: DataFrame,        
+        samples: dict | list | DataFrame,
         root: str | Path | None = None,
         normal_split_ratio: float = 0.2,
         train_batch_size: int = 32,
