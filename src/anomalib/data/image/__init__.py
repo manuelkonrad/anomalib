@@ -21,6 +21,7 @@ class ImageDataFormat(str, Enum):
     """Supported Image Dataset Types."""
 
     BTECH = "btech"
+    DATAFRAME = "dataframe"
     DATUMARO = "datumaro"
     FOLDER = "folder"
     FOLDER_3D = "folder_3d"
@@ -28,7 +29,6 @@ class ImageDataFormat(str, Enum):
     MVTEC = "mvtec"
     MVTEC_3D = "mvtec_3d"
     VISA = "visa"
-    DATAFRAME = "dataframe"
 
 
 __all__ = ["BTech", "Dataframe", "Datumaro", "Folder", "Kolektor", "MVTec", "Visa"]
